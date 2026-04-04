@@ -1,0 +1,56 @@
+## Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+## Angular / Build
+dist/
+build/
+/.angular/
+out-tsc/
+/*.js
+/*.js.map
+/*.tsbuildinfo
+
+## Logs
+logs
+*.log
+pids
+*.pid
+*.seed
+*.pid.lock
+
+## Runtime data
+tmp/
+temp/
+
+## Environment
+.env
+.env.*
+
+## Coverage
+coverage/
+lcov-report/
+
+## IDEs and editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+## OS files
+.DS_Store
+
+## Misc
+*.tgz
+*.gz
+.cache/
+/.cache
+
+# Upay-node build/deploy artifacts
+/Upay-node/angular/
