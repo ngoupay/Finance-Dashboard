@@ -406,7 +406,9 @@ export class ApprovalFormService {
 
   getApproval(search?, sort?, order = -1, pageSize = 10, pageNum = 0, status?, zones?, approvaltype?, start?, end?) {
     sort = sort || 'date';
-    this.http.get(this.url + `?search=${search}&sort=${sort}&order=${order}&pageSize=${pageSize}&pageNum=${pageNum}&zones=${zones}&status=${status}&approvaltype=${approvaltype}&start=${start}&end=${end}`).subscribe((res) => {
+    const startStr = start instanceof Date ? start.toISOString() : start;
+    const endStr = end instanceof Date ? end.toISOString() : end;
+    this.http.get(this.url + `?search=${search}&sort=${sort}&order=${order}&pageSize=${pageSize}&pageNum=${pageNum}&zones=${zones}&status=${status}&approvaltype=${approvaltype}&start=${startStr}&end=${endStr}`).subscribe((res) => {
       this.approvalSubject.next(res);
     },
       (err) => { console.log(err); }
