@@ -49,7 +49,8 @@
             <button mat-raised-button (click)="verifyOTP(otp.value)" type="button">Verify OTP</button>
           </div>
           <p *ngIf="isOTPVerified == 2" class="error">OTP did not match</p>
-          <a class="cqc" href="../../assets/DOP.pdf" download>Download DOP</a>
+          <!-- <a class="cqc" href="../../assets/DOP.pdf" download>Download DOP</a> -->
+          <a class="cqc" href="../../assets/Final approved  UPAY DOP 2022_14.10.22.pdf" download>Download DOP</a>
           <mat-form-field>
             <input matInput type="number" placeholder="Requisite amount" name="amount" ngModel #amountInput="ngModel"
               [ngModel]="updateApproval?.amount || ''" required>
