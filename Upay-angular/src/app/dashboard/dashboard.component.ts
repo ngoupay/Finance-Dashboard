@@ -217,7 +217,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.paginator.pageIndex = 0;
       this.pageSize = e.pageSize;
     }
-    this.approvalFormService.getApproval(this.searchText, this.sortBy, this.sortOrder, e.pageSize, e.pageIndex, this.statusfilters, this.zonefilters, this.approvaltypefilters);
+    this.approvalFormService.getApproval(this.searchText, this.sortBy, this.sortOrder, e.pageSize, e.pageIndex, this.statusfilters, this.zonefilters, this.approvaltypefilters, this.start, this.end);
   }
 
   sendForApproval(e) {

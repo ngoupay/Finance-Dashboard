@@ -1284,6 +1284,16 @@ exports.getApproval = (req, res, next) => {
       .limit(pageSize)
       .sort({ [sort]: [order] });
   }
+  // Apply date range filter if valid start and end dates are provided
+  if (start && end && start !== 'undefined' && end !== 'undefined') {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+      approvalQuery = approvalQuery.find({
+        date: { $gte: startDate, $lte: endDate }
+      });
+    }
+  }
   approvalQuery
     .then(approval => {
       if (approval) {

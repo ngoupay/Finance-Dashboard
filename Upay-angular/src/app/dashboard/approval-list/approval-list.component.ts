@@ -69,17 +69,16 @@ export class ApprovalListComponent implements OnInit {
 
   }
   onDateChange(e) {
-    console.log("date function");
-    const d1 = new Date(e[0]).getDate()
-    const d2 = new Date(e[1]).getDate()
-    this.start = new Date(this.fullYear, this.month - 1, d1);
-    this.end = new Date(this.fullYear, this.month, d2);
-    //   public start: Date = new Date(this.fullYear, this.month - 1, 7);
-    // public end: Date = new Date(this.fullYear, this.month, 25);
+    console.log("date function", e);
+    // Only process user-initiated date changes
+    if (!e || !e.startDate || !e.endDate) {
+      return;
+    }
+    this.start = new Date(e.startDate);
+    this.end = new Date(e.endDate);
+    // Set end date to end of day so the filter includes the full end date
+    this.end.setHours(23, 59, 59, 999);
     console.log(this.start, this.end);
-
-    // console.log(" staer" + this.start);
-    // console.log("end" + this.end);
 
     this.filterApproval(this.zones, this.status, this.approvaltype);
   }
