@@ -2,7 +2,7 @@
 padding-top: 7px;">Provide Employee(s) detail</h4>
 <div class="floating">
     <mat-form-field class="sizee">
-        <input matInput type="text" placeholder="Salary Slip Number" name="Number" [(ngModel)]="salary.number"
+        <input matInput type="text" placeholder="Employee ID" name="Number" [(ngModel)]="salary.number"
             #billNumberInput="ngModel" required>
         <mat-error *ngIf="billNumberInput.invalid"> Please enter salary slip number</mat-error>
     </mat-form-field>
@@ -17,10 +17,45 @@ padding-top: 7px;">Provide Employee(s) detail</h4>
         <mat-error *ngIf="vendorInput.invalid"> Please enter employee</mat-error>
     </mat-form-field>
     <mat-form-field class="sizee">
-        <input matInput type="text" placeholder=" Discription" name="body" [(ngModel)]="salary.itemDesc"
+        <input matInput type="text" placeholder=" Description" name="body" [(ngModel)]="salary.itemDesc"
             value="itemDesc" #DiscriptionInput="ngModel" required minlength="20">
         <mat-error *ngIf="DiscriptionInput.invalid"> Please provide Discription (min character 20)</mat-error>
     </mat-form-field>
+    <mat-form-field class="sizee">
+        <mat-label>Project</mat-label>
+        <mat-select name="project" [(ngModel)]="salary.project">
+            <mat-option *ngFor="let project of projects" [value]="project">
+                {{project}}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field class="sizee">
+        <mat-label>Salary Head</mat-label>
+        <mat-select name="salaryHead" [(ngModel)]="salary.salaryHead">
+            <mat-option *ngFor="let head of salaryHeads" [value]="head">
+                {{head}}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field class="sizee">
+        <mat-label>Salary Sub Head</mat-label>
+        <mat-select name="salarySubHead" [(ngModel)]="salary.salarySubHead">
+            <mat-option *ngFor="let subHead of salarySubHeads" [value]="subHead">
+                {{subHead}}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+    <div class="csv-actions">
+        <input type="file" accept=".csv" name="salaryCsvFile" #salaryCsvInput
+            (change)="onSalaryCsvPicked($event,b)" />
+        <button mat-raised-button class="verify-btn" color="primary"
+            (click)="$event.preventDefault(); salaryCsvInput.click()" type="button">Upload CSV</button>
+        <a href="assets/templates/UPAY_Salary_CSV_template_-_Sheet1.csv" download
+            style="margin-left: 10px; color: #1d319f; text-decoration: underline; font-weight: 500;">Download CSV template</a>
+        <p class="filename" style="padding:10px 0; margin-top:0; max-width: 250px;" *ngIf="salary.csvFile">
+            {{salary.csvFile.name}}</p>
+    </div>
+
     <div class="file-input mt-10 mb-10">
         <input type="file" accept=".doc,.docx,.txt,.pdf,.jpg,.jpeg,.png" name="file" #salaryInput observeFiles
             (change)="onsalaryImagePicked($event,b)" />

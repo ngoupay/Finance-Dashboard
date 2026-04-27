@@ -42,7 +42,17 @@
           href="../bill-dashboard?id={{approval.approvalId }}">Bills dashboard</a>
         <a *ngIf="!approval.filePath && approval.approval_type =='Advance or Imprest'" target="_blank"
           href="../bill-dashboard?id={{approval.approvalId }}">Bills dashboard</a>
+        <a *ngIf="!approval.filePath && approval.approval_type =='Salary'" target="_blank"
+          href="../get-single-approval?approvalId={{approval.approvalId}}">Salary details</a>
       </span>
+    </div>
+    <div *ngIf="approval.approval_type === 'Salary' && salaryList.length">
+      <h4>Salary Files</h4>
+      <div *ngFor="let salary of salaryList">
+        <div><label>Employee: </label><span>{{salary.employeename || '-'}}</span></div>
+        <div *ngIf="salary.csvFilePath"><label>CSV: </label><a href="{{salary.csvFilePath}}" target="_blank">File</a></div>
+        <div *ngIf="salary.filePath"><label>Attachment: </label><a href="{{salary.filePath}}" target="_blank">File</a></div>
+      </div>
     </div>
     <div *ngIf="approval?.approver_remarks"><label>Remarks by approver:
       </label><span>{{approval?.approver_remarks}}</span></div>

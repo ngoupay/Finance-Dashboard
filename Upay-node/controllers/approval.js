@@ -11,7 +11,27 @@ const jwt = require('jsonwebtoken');
 const request = require('request');
 const sgMail = require('@sendgrid/mail');
 const fs = require("fs");
-sgMail.setApiKey(process.env.SENDGRID_API);
+
+if (process.env.SENDGRID_API) {
+  sgMail.setApiKey(process.env.SENDGRID_API);
+} else {
+  console.warn('SENDGRID_API is not configured. Email notifications are disabled.');
+}
+
+const rawSendGridSend = sgMail.send.bind(sgMail);
+sgMail.send = function patchedSendGridSend() {
+  try {
+    return Promise.resolve(rawSendGridSend.apply(sgMail, arguments)).catch((error) => {
+      const sendGridError = error && error.response && error.response.body ? error.response.body : error;
+      console.error('SendGrid send failed:', sendGridError);
+      return null;
+    });
+  } catch (error) {
+    const sendGridError = error && error.response && error.response.body ? error.response.body : error;
+    console.error('SendGrid send failed (sync):', sendGridError);
+    return Promise.resolve(null);
+  }
+};
 
 const serverURL = process.env.SERVER_URL;
 const api_key = process.env.OTP_API_KEY;
@@ -149,9 +169,13 @@ exports.createBill = async (req, res, next) => {
     billnumber: req.body.billnumber,
     billamount: req.body.billamount,
     description: req.body.description,
+    project: req.body.project,
+    budgetHead: req.body.budgetHead,
+    budgetSubHead: req.body.budgetSubHead,
     assetdetails: req.body.assetdetails,
     assetvalue: req.body.assetvalue,
     assetcodes: req.body.assetcodes,
+    assettype: req.body.assettype,
     filePath: pathToAttachment,
     fileName: orginal_filename
   });
@@ -184,9 +208,13 @@ exports.updateBill = async (req, res, next) => {
       billnumber: req.body.billnumber,
       billamount: req.body.billamount,
       description: req.body.description,
+      project: req.body.project,
+      budgetHead: req.body.budgetHead,
+      budgetSubHead: req.body.budgetSubHead,
       assetdetails: req.body.assetdetails,
       assetvalue: req.body.assetvalue,
       assetcodes: req.body.assetcodes,
+      assettype: req.body.assettype,
     };
     if (req.file) {
       updatedBill.filePath = req.file.location;
@@ -266,9 +294,14 @@ exports.updateSalary = async (req, res, next) => {
       description: req.body.description,
     };
 
-    if (req.file) {
-      updatedSalary.filePath = req.file.location;
-      updatedSalary.fileName = req.file.originalname;
+    if (req.files && req.files.file && req.files.file[0]) {
+      updatedSalary.filePath = req.files.file[0].location;
+      updatedSalary.fileName = req.files.file[0].originalname;
+    }
+
+    if (req.files && req.files.csvFile && req.files.csvFile[0]) {
+      updatedSalary.csvFilePath = req.files.csvFile[0].location;
+      updatedSalary.csvFileName = req.files.csvFile[0].originalname;
     }
 
     Object.assign(salaryToUpdate, updatedSalary);
@@ -290,10 +323,16 @@ exports.createSalary = async (req, res, next) => {
   pathToAttachment = null;
   file = null;
   orginal_filename = null;
-  if (req.file) {
-    file = req.file;
-    orginal_filename = req.file.originalname;
-    pathToAttachment = req.file.location;
+  let csvPathToAttachment = null;
+  let csvOriginalFilename = null;
+  if (req.files && req.files.file && req.files.file[0]) {
+    file = req.files.file[0];
+    orginal_filename = req.files.file[0].originalname;
+    pathToAttachment = req.files.file[0].location;
+  }
+  if (req.files && req.files.csvFile && req.files.csvFile[0]) {
+    csvPathToAttachment = req.files.csvFile[0].location;
+    csvOriginalFilename = req.files.csvFile[0].originalname;
   }
   // console.log("req.body: ", req.body);
   const salary = new Salary({
@@ -303,7 +342,9 @@ exports.createSalary = async (req, res, next) => {
     salaryamount: req.body.salaryamount,
     description: req.body.description,
     filePath: pathToAttachment,
-    fileName: orginal_filename
+    fileName: orginal_filename,
+    csvFilePath: csvPathToAttachment,
+    csvFileName: csvOriginalFilename
   });
   salary.save().then(uploadedsalary => {
     res.status(200).json({ message: 'Thanks for your response.' });
@@ -375,6 +416,8 @@ exports.createApproval2 = async (req, res, next) => {
       bank_name: req.body.bankName,
       payee_name: req.body.payeeName,
       ifsc_code: req.body.bankIfsc,
+      section: req.body.section,
+      sl_no: req.body.slNo,
       shipping_addr: req.body.shippingAddress,
       awardItemDesc: req.body.awardItemDesc,
       awardquantity: req.body.awardquantity,
@@ -420,6 +463,8 @@ exports.createApproval2 = async (req, res, next) => {
       bank_name: req.body.bankName,
       payee_name: req.body.payeeName,
       ifsc_code: req.body.bankIfsc,
+      section: req.body.section,
+      sl_no: req.body.slNo,
       timeline: req.body.email + ' created the approval at ' + istTime + '.'
     });
     approval.save().then(createdApproval => {
@@ -463,6 +508,8 @@ exports.createApproval2 = async (req, res, next) => {
       bank_name: req.body.bankName,
       payee_name: req.body.payeeName,
       ifsc_code: req.body.bankIfsc,
+      section: req.body.section,
+      sl_no: req.body.slNo,
       timeline: req.body.email + ' created the approval at ' + istTime + '.'
 
     });
@@ -519,6 +566,8 @@ exports.createApproval2 = async (req, res, next) => {
               bank_name: req.body.bankName,
               payee_name: req.body.payeeName,
               ifsc_code: req.body.bankIfsc,
+              section: req.body.section,
+              sl_no: req.body.slNo,
               timeline: req.body.email + ' created the approval at ' + istTime + '.'
             }
           }
@@ -607,6 +656,8 @@ exports.createApproval = async (req, res, next) => {
     bank_name: req.body.bankName,
     payee_name: req.body.payeeName,
     ifsc_code: req.body.bankIfsc,
+    section: req.body.section,
+    sl_no: req.body.slNo,
     timeline: req.body.email + ' created the approval at ' + istTime + '.'
   });
   approval.save().then(createdApproval => {
@@ -709,6 +760,8 @@ exports.updateApproval2 = async (req, res, next) => {
         bank_name: req.body.bankName,
         payee_name: req.body.payeeName,
         ifsc_code: req.body.bankIfsc,
+        section: req.body.section,
+        sl_no: req.body.slNo,
         timeline: approvalToUpdate.timeline + '\n' + req.body.email + ' resubmitted the approval at ' + istTime + '.'
       };
 
@@ -739,6 +792,8 @@ exports.updateApproval2 = async (req, res, next) => {
         bank_name: req.body.bankName,
         payee_name: req.body.payeeName,
         ifsc_code: req.body.bankIfsc,
+        section: req.body.section,
+        sl_no: req.body.slNo,
         timeline: approvalToUpdate.timeline + '\n' + req.body.email + ' resubmitted the approval at ' + istTime + '.'
       };
 
@@ -774,6 +829,8 @@ exports.updateApproval2 = async (req, res, next) => {
         bank_name: req.body.bankName,
         payee_name: req.body.payeeName,
         ifsc_code: req.body.bankIfsc,
+        section: req.body.section,
+        sl_no: req.body.slNo,
         shipping_addr: req.body.shippingAddress,
         awardItemDesc: req.body.awardItemDesc,
         awardquantity: req.body.awardquantity,
@@ -807,6 +864,8 @@ exports.updateApproval2 = async (req, res, next) => {
         bank_name: req.body.bankName,
         payee_name: req.body.payeeName,
         ifsc_code: req.body.bankIfsc,
+        section: req.body.section,
+        sl_no: req.body.slNo,
         timeline: approvalToUpdate.timeline + '\n' + req.body.email + ' resubmitted the approval at ' + istTime + '.'
       };
 
@@ -915,402 +974,171 @@ exports.updateApproval = async (req, res, next) => {
 
 exports.getApproval = (req, res, next) => {
 
-  let str1 = (req.query.search !== "undefined" ? req.query.search : '') +
-    (req.query.zones !== "undefined" ? req.query.zones : '') +
-    (req.query.status !== "undefined" ? req.query.status : '') +
-    (req.query.approvaltype !== "undefined" ? req.query.approvaltype : '');
-  let str = req.query.search.split(',').join("|");
+  let str = req.query.search !== 'undefined' && req.query.search ? req.query.search.split(',').join('|') : '';
 
-  let zonestr = req.query.zones.split(',');
-  let statusstr = req.query.status.split(',');
-  let approvaltype = req.query.approvaltype.split(',');
+  let zonestr = req.query.zones !== 'undefined' && req.query.zones ? req.query.zones.split(',') : [];
+  let statusstr = req.query.status !== 'undefined' && req.query.status ? req.query.status.split(',') : [];
+  let approvaltypeRaw = req.query.approvaltype !== 'undefined' && req.query.approvaltype ? req.query.approvaltype.split(',') : [];
+
+  let expandedApprovalTypes = [];
+  let includeClaimSubDocs = false; // whether to include nested claims from parent docs
+  let directApprovalTypes = []; // top-level approval_type values to query directly
+
+  approvaltypeRaw.forEach(type => {
+    if (type === 'Advance') {
+      directApprovalTypes.push('Advance', 'Advance or Imprest');
+    } else if (type === 'Imprest') {
+      directApprovalTypes.push('Imprest', 'Advance or Imprest');
+    } else if (type === 'Claim against advance/PO' || type === 'Claim against advance') {
+      // Claims are nested sub-documents inside Advance/Imprest parents — not top-level docs.
+      // Flag to also fetch parent docs with claims so we can expand them.
+      includeClaimSubDocs = true;
+      expandedApprovalTypes.push('Claim against advance/PO', 'Claim against advance');
+    } else if (type === 'Advance or Imprest') {
+      directApprovalTypes.push('Advance or Imprest', 'Advance', 'Imprest');
+    } else {
+      directApprovalTypes.push(type);
+    }
+  });
+
+  // Merge: direct types always apply; claim sub-doc types go into expandedApprovalTypes for sub-doc filtering
+  // For the DB query, we query top-level docs by directApprovalTypes plus (if claims requested) parent docs that have claims.
+  const allDirectTypes = [...new Set([...directApprovalTypes])];
+  // expandedApprovalTypes already has the claim type strings for sub-doc filtering
+
   let start = req.query.start;
   let end = req.query.end;
-  console.log("start date" + start, "end date" + end);
+  console.log('start date' + start, 'end date' + end);
   const sort = req.query.sort;
   const order = req.query.order;
   const pageNum = req.query.pageNum;
   const pageSize = req.query.pageSize * 1;
-  let approvalQuery;
-  let totalCount = 0;
-  if (str1 && str1 !== "undefined" && str1 != "null" && str1 != '') {
-    //// console.log('load sorted values');
-    if (
-      (req.query.status !== 'undefined' && req.query.status != '' && req.query.zones !== 'undefined' && req.query.zones != '') ||
-      (req.query.zones !== 'undefined' && req.query.zones != '' && req.query.approvaltype !== 'undefined' && req.query.approvaltype != '') ||
-      (req.query.status !== 'undefined' && req.query.status != '' && req.query.approvaltype !== 'undefined' && req.query.approvaltype != '')
-    ) {
-      //str = new RegExp(str,'i');
-      approvalQuery = Approval.find(req.userData.zone != 'admin' ? (req.userData.zone != 'Central' ? { zone: req.userData.zone } : {
-        $or: [{
-          to_central_zone
-            : true
-        }, { zone: "Central" }]
-      }) : {});
-      if ((req.query.status !== 'undefined' && req.query.status != '' && req.query.zones !== 'undefined' && req.query.zones != '' && req.query.approvaltype !== 'undefined' && req.query.approvaltype != ''))
-        approvalQuery = approvalQuery.find(
-          {
-            //$or: [
-            // { createddate: { $gte: new Date(start), $lt: new Date(end) } },
-            //{ createddate: { $gte: ISODate(new Date(start)), $lt: ISODate(new Date(end)) } },
-            //{
-            $or: [
-              {
-                $and: [
 
-                  { zone: { "$in": req.query.zones === 'undefined' && req.query.zones === '' ? str : zonestr } },
-                  { status: { "$in": req.query.status === 'undefined' && req.query.status === '' ? str : statusstr } },
-                  { approval_type: { "$in": req.query.approvaltype === 'undefined' && req.query.approvaltype === '' ? str : approvaltype } },
-                ]
-              },
+  // Build the zone-access base filter
+  let zoneAccessFilter = req.userData.zone !== 'admin'
+    ? (req.userData.zone !== 'Central'
+      ? { zone: req.userData.zone }
+      : { $or: [{ to_central_zone: true }, { zone: 'Central' }] })
+    : {};
 
-              {
-                approvalId: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                name: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                email: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                designation: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                contact: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                subject: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                body: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },]
-            //}
-            //]
+  // Build the $and conditions array for active filters
+  let andConditions = [];
 
-          }
-        );
-      else if ((req.query.status !== 'undefined' && req.query.status != '' && req.query.zones !== 'undefined' && req.query.zones != ''))
-        approvalQuery = approvalQuery.find(
-          {
-            //$or: [
-            // { createddate: { $gte: new Date(start), $lt: new Date(end) } },
-            // { createddate: { $gte: ISODate(new Date(start)), $lt: ISODate(new Date(end)) } },
-
-            // {
-            $or: [
-              {
-                $and: [
-
-                  { zone: { "$in": req.query.zones === 'undefined' && req.query.zones === '' ? str : zonestr } },
-                  { status: { "$in": req.query.status === 'undefined' && req.query.status === '' ? str : statusstr } },
-                ]
-              },
-              { approval_type: { "$in": req.query.approvaltype === 'undefined' && req.query.approvaltype === '' ? str : approvaltype } },
-              {
-                approvalId: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                name: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                email: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                designation: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                contact: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                subject: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                body: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },]
-            //}
-            // ]
-
-          }
-        );
-      else if ((req.query.zones !== 'undefined' && req.query.zones != '' && req.query.approvaltype !== 'undefined' && req.query.approvaltype != ''))
-        approvalQuery = approvalQuery.find(
-          {
-            //$or: [
-            // { createddate: { $gte: new Date(start), $lt: new Date(end) } },
-            // { createddate: { $gte: ISODate(new Date(start)), $lt: ISODate(new Date(end)) } },
-
-            // {
-            $or: [
-              {
-                $and: [
-
-                  { zone: { "$in": req.query.zones === 'undefined' && req.query.zones === '' ? str : zonestr } },
-                  { approval_type: { "$in": req.query.approvaltype === 'undefined' && req.query.approvaltype === '' ? str : approvaltype } },
-                ]
-              },
-              { status: { "$in": req.query.status === 'undefined' && req.query.status === '' ? str : statusstr } },
-              {
-                approvalId: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                name: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                email: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                designation: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                contact: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                subject: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                body: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },]
-            // }
-            //]
-
-          }
-        );
-      else if ((req.query.status !== 'undefined' && req.query.status != '' && req.query.approvaltype !== 'undefined' && req.query.approvaltype != ''))
-        approvalQuery = approvalQuery.find(
-          {
-            // $or: [
-            // { createddate: { $gte: new Date(start), $lt: new Date(end) } },
-            // { createddate: { $gte: ISODate(new Date(start)), $lt: ISODate(new Date(end)) } },
-
-            // {
-            $or: [
-              {
-                $and: [
-                  { status: { "$in": req.query.status === 'undefined' && req.query.status === '' ? str : statusstr } },
-                  { approval_type: { "$in": req.query.approvaltype === 'undefined' && req.query.approvaltype === '' ? str : approvaltype } },
-                ]
-              },
-              { zone: { "$in": req.query.zones === 'undefined' && req.query.zones === '' ? str : zonestr } },
-              {
-                approvalId: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                name: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                email: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                designation: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                contact: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                subject: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },
-              {
-                body: {
-                  "$regex": str,
-                  "$options": "i"
-                }
-              },]
-            // }
-            //]
-
-          }
-        );
-      approvalQuery = approvalQuery.sort({ [sort]: [order] })
-        .skip(pageSize * pageNum)
-        .limit(pageSize);
-    }
-    else {
-
-      approvalQuery = Approval.find(req.userData.zone != 'admin' ? (req.userData.zone != 'Central' ? { zone: req.userData.zone } : { $or: [{ to_central_zone: true }, { zone: "Central" }] }) : {}).find(
-        {
-          // $or: [
-          // { createddate: { $gte: new Date(start), $lt: new Date(end) } },
-          //   { createddate: { $gte: ISODate(new Date(start)), $lt: ISODate(new Date(end)) } },
-
-          //  {
-          $or: [
-
-            { status: { "$in": req.query.status === 'undefined' && req.query.status === '' ? str : statusstr } },
-            { zone: { "$in": req.query.zones === 'undefined' && req.query.zones === '' ? str : zonestr } },
-            { approval_type: { "$in": req.query.approvaltype === 'undefined' && req.query.approvaltype === '' ? str : approvaltype } },
-            {
-              approvalId: {
-                "$regex": str,
-                "$options": "i"
-              }
-            },
-            {
-              name: {
-                "$regex": str,
-                "$options": "i"
-              }
-            },
-            {
-              email: {
-                "$regex": str,
-                "$options": "i"
-              }
-            },
-            {
-              designation: {
-                "$regex": str,
-                "$options": "i"
-              }
-            },
-            {
-              contact: {
-                "$regex": str,
-                "$options": "i"
-              }
-            },
-            {
-              subject: {
-                "$regex": str,
-                "$options": "i"
-              }
-            },
-            {
-              body: {
-                "$regex": str,
-                "$options": "i"
-              }
-            },]
-          // }
-          // ]
-
-        }
-      ).sort({ [sort]: [order] })
-        .skip(pageSize * pageNum)
-        .limit(pageSize);
-      //// console.log('inside search')
-    }
+  // Search text filter (across multiple fields via $or)
+  if (str) {
+    andConditions.push({
+      $or: [
+        { approvalId: { $regex: str, $options: 'i' } },
+        { name: { $regex: str, $options: 'i' } },
+        { email: { $regex: str, $options: 'i' } },
+        { designation: { $regex: str, $options: 'i' } },
+        { contact: { $regex: str, $options: 'i' } },
+        { subject: { $regex: str, $options: 'i' } },
+        { body: { $regex: str, $options: 'i' } }
+      ]
+    });
   }
-  else {
-    // console.log('load default values');
-    approvalQuery = Approval.find(req.userData.zone != 'admin' ? (req.userData.zone != 'Central' ? { zone: req.userData.zone } : {
-      $or: [{
-        to_central_zone
-          : true
-      }, { zone: "Central" }]
-    }) : {})
-      .skip(pageSize * pageNum)
-      .limit(pageSize)
-      .sort({ [sort]: [order] });
+
+  // Zone filter
+  if (zonestr.length > 0) {
+    andConditions.push({ zone: { $in: zonestr } });
   }
-  // Apply date range filter if valid start and end dates are provided
+
+  // Status filter
+  if (statusstr.length > 0) {
+    andConditions.push({ status: { $in: statusstr } });
+  }
+
+  // Approval type filter
+  // If only claim sub-docs are requested (no direct types), we need to fetch parent docs with claims.
+  // If both direct types and claim sub-docs are requested, use $or to get both.
+  let approvalTypeCondition = null;
+  if (allDirectTypes.length > 0 && includeClaimSubDocs) {
+    // Fetch parents matching direct types OR parents that have claims (claims.length > 0)
+    approvalTypeCondition = {
+      $or: [
+        { approval_type: { $in: allDirectTypes } },
+        { 'claims.0': { $exists: true } }  // has at least one claim sub-doc
+      ]
+    };
+  } else if (allDirectTypes.length > 0) {
+    approvalTypeCondition = { approval_type: { $in: allDirectTypes } };
+  } else if (includeClaimSubDocs) {
+    // Only claim sub-docs requested — fetch any parent that has claims
+    approvalTypeCondition = { 'claims.0': { $exists: true } };
+  }
+
+  if (approvalTypeCondition) {
+    andConditions.push(approvalTypeCondition);
+  }
+
+  // Date range filter
   if (start && end && start !== 'undefined' && end !== 'undefined') {
     const startDate = new Date(start);
     const endDate = new Date(end);
     if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-      approvalQuery = approvalQuery.find({
-        date: { $gte: startDate, $lte: endDate }
-      });
+      andConditions.push({ date: { $gte: startDate, $lte: endDate } });
     }
   }
-  approvalQuery
-    .then(approval => {
-      if (approval) {
-        //TODO: Create approval object
-        let approvals = [];
-        approval.forEach(approval => {
-          approvals.push(approval);
-          if ("claims" in approval) {
-            if (approval.claims.length > 0) {
-              approval.claims.forEach(claims => {
-                approvals.push(claims);
-              });
 
-            }
+  let finalFilter = andConditions.length > 0 ? { $and: andConditions } : {};
+
+  // Determine which approval types are allowed in the final flat list (for sub-doc filtering)
+  // allAllowedTypes = directApprovalTypes + expandedApprovalTypes (claim types for sub-docs)
+  const allAllowedTypes = [...new Set([...allDirectTypes, ...expandedApprovalTypes])];
+
+  let approvalQuery = Approval.find(zoneAccessFilter)
+    .find(finalFilter)
+    .sort({ [sort]: [order] })
+    .skip(pageSize * pageNum)
+    .limit(pageSize)
+    .lean();
+
+  approvalQuery
+    .then(async approval => {
+      if (approval) {
+        let approvals = [];
+        const filteringByType = approvaltypeRaw.length > 0;
+        approval.forEach(doc => {
+          // Include this top-level doc only if it matches the approval type filter (or no type filter is active)
+          const docMatchesType = !filteringByType || allAllowedTypes.includes(doc.approval_type);
+          if (docMatchesType) {
+            approvals.push(doc);
+          }
+          // Expand nested claims, filtering them by approval_type if a type filter is active
+          if ('claims' in doc && doc.claims.length > 0) {
+            doc.claims.forEach(claim => {
+              const claimMatchesType = !filteringByType || allAllowedTypes.includes(claim.approval_type);
+              if (claimMatchesType) {
+                approvals.push(claim);
+              }
+            });
           }
         });
-        //// console.log(approvals);
+        // Slice to pageSize to account for claim expansions exceeding the limit
+        approvals = approvals.slice(0, pageSize);
+
+        try {
+          const approvalIds = approvals.map(a => a.approvalId).filter(Boolean);
+          const claimIds = approvals.map(a => a.claimId).filter(Boolean);
+          
+          let bills = [];
+          if (approvalIds.length > 0 || claimIds.length > 0) {
+            bills = await Bill.find({
+              $or: [
+                { approvalId: { $in: approvalIds } },
+                { claimId: { $in: claimIds } }
+              ]
+            }).lean();
+          }
+
+          approvals.forEach(a => {
+            a.bills = bills.filter(b => b.approvalId === a.approvalId && (a.claimId ? b.claimId === a.claimId : true));
+          });
+        } catch(e) {
+          console.log("Error fetching bills for approvals:", e);
+        }
+
         res.status(200).json(approvals);
       } else {
         res.status(404).json({
@@ -1319,7 +1147,7 @@ exports.getApproval = (req, res, next) => {
       }
     })
     .catch(error => {
-      // console.log(error);
+      console.log(error);
       res.status(500).json({
         message: 'Fetching Approval falied!'
       });
@@ -1421,26 +1249,23 @@ exports.getAwardApproval = (req, res, next) => {
 };
 
 exports.getUnutilizedamt = (req, res, next) => {
-  let id = req.params.id;
-  let approvalQuery;
-  approvalQuery = Approval.find({ $or: [{ approvalId: id }] });
-  approvalQuery
+  const id = (req.params.id || '').trim();
+  const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  Approval.findOne({ approvalId: { $regex: `^${escapedId}$`, $options: 'i' } })
     .then(approval => {
-      let unutilized = approval[0].unutilizedamount;
-      if (unutilized != '' && unutilized != undefined) {
-        let amtvalue = { 'unutilizedamount': unutilized };
-        res.status(200).json(amtvalue);
-      }
-      else if (unutilized == '' || unutilized === undefined) {
-        let notapplicable = { 'unutilizedamount': 'NA' };
-        res.status(404).json(notapplicable);
-      }
-      else {
-        res.status(404).json({
-          error_message: 'Unutilized amount not found!',
+      if (!approval) {
+        return res.status(404).json({
+          error_message: 'Approval Id does not exist'
         });
       }
 
+      const unutilized = approval.unutilizedamount;
+      if (unutilized !== '' && unutilized !== undefined && unutilized !== null) {
+        return res.status(200).json({ unutilizedamount: unutilized });
+      }
+
+      return res.status(404).json({ unutilizedamount: 'NA' });
     })
     .catch(error => {
       // console.log(error);

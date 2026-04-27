@@ -8,10 +8,14 @@ const billsSchema = mongoose.Schema({
   billnumber: { type: String, required: true },
   billamount: { type: Number, required: true },
   description: { type: String, required: false },
+  project: { type: String, required: false },
+  budgetHead: { type: String, required: false },
+  budgetSubHead: { type: String, required: false },
   fileName: { type: String, required: false },
   assetdetails: { type: String, required: false },
   assetvalue: { type: String, required: false },
   assetcodes: { type: String, required: false },
+  assettype: { type: String, required: false },
   filePath: { type: String, required: false },
 });
 

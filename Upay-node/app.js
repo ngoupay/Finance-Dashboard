@@ -19,6 +19,8 @@ rule2.tz = 'Asia/Kolkata';
 
 const app = express();
 
+mongoose.set('useFindAndModify', false);
+
 mongoose.connect("mongodb+srv://" + process.env.MONGO_ATLAS_USER + ":" + process.env.MONGO_ATLAS_PW + "@" + process.env.MONGO_ATLAS_CLUSTER + ".mongodb.net/" + process.env.DATABASE + "?retryWrites=true&w=majority")
   .then(() => {
     console.log('Connected to database!');

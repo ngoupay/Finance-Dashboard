@@ -9,6 +9,8 @@ const salarySchema = mongoose.Schema({
   description: { type: String, required: false },
   filePath: { type: String, required: false },
   fileName: { type: String, required: false },
+  csvFilePath: { type: String, required: false },
+  csvFileName: { type: String, required: false },
 });
 
 module.exports = mongoose.model('Salary', salarySchema);

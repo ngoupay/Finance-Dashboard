@@ -1,0 +1,97 @@
+BH01 - Center Operation
+Sub-Heads :
+Teacher Salary/Allowances
+Books & Stationary
+Rental Charges
+Misc
+
+BH02 - Center development
+Sub-Heads :
+Establishment Cost
+Electrical works & Appliances
+Beautification & Advancement
+
+BH03 - Child Development activities
+Sub-Heads :
+Sports Activities
+Cultural Activities
+Career Development
+Nutritional drives
+Counseling & Immunization
+
+BH04 - Community Development
+Sub-Heads :
+Fellowship/ Capacity Building
+Health, Environment & sanitation
+Protection of child abuse drives
+Other Social issues awareness
+
+BH05 - New Zonal / Project / Center Expansion
+Sub-Heads :
+—
+
+BH06 - Fund raiser events
+Sub-Heads :
+Online Fundraiser cost
+Fund raiser events
+
+BH07 - Legal & Statutory
+Sub-Heads :
+—
+
+BH08 - Outreach
+Sub-Heads :
+Social & other Media
+PR events/material
+
+BH09 - HR
+Sub-Heads :
+Hiring
+Training
+Employee Benefit
+
+BH10 - Administrative
+Sub-Heads :
+Employees salary
+Rental Charges
+Meetings & Travels
+Misc Office expenditure
+
+BH11 - Library Operations
+Sub-Heads :
+Establishment cost
+Books & Magazines
+Librarian's Salary
+Rental Charges
+
+BH12 - Skill Development
+Sub-Heads :
+Establishment cost
+Material
+Trainer's Salary
+Trainees / Beneficiary Stipend
+Rental Charges
+
+BH13 - Women Empowerment
+Sub-Heads :
+Menstrual Hygiene
+Other Empowerment Drive
+
+BH14 - Research & Development (Tech)
+Sub-Heads :
+Development (Tech & Others)
+Research
+
+BH15 - Project Management
+Sub-Heads :
+Planning
+Monitoring
+Assessment
+
+BH16 - Disaster Relief
+Sub-Heads :
+Disaster Relief
+
+BH17 - Contingency Funds
+Sub-Heads :
+Emergency / Contingency support

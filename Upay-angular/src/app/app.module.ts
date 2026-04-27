@@ -19,6 +19,7 @@ import {
   MatTooltipModule,
   MatMenuModule,
   MatChipsModule,
+  MatAutocompleteModule,
 } from '@angular/material';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { AppComponent } from './app.component';
@@ -96,6 +97,7 @@ import { BillListItemComponent } from './bill-dashboard/bill-list/bill-list-item
     MatMenuModule,
     MatPaginatorModule,
     MatChipsModule,
+    MatAutocompleteModule,
     MatDatepickerModule,
     MatNativeDateModule,
   ],

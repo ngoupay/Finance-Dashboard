@@ -37,8 +37,14 @@ position:relative;
 .sizee{
     width:149px;
     margin-right:10px; 
-    height:40px;
+    margin-bottom:10px;
+    min-height:50px;
+  height:auto;
     border-bottom: 0px solid grey;
+}
+
+.sizee-wide{
+  width:250px;
 }
 .filebtn{
     top:10px;
@@ -83,5 +89,14 @@ position:relative;
   }
   .filename {
     align-self: flex-start;
+  }
+
+  ::ng-deep .mat-autocomplete-panel .mat-option {
+    height: auto;
+    line-height: 1.35;
+    min-height: 48px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    white-space: normal;
   }
   

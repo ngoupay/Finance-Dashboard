@@ -138,6 +138,26 @@ mat-form-field {
   width: 100%;
 }
 
+.section-slno-row {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+}
+
+.section-slno-row mat-form-field {
+  width: calc(50% - 6px);
+}
+
+@media only screen and (max-width: 900px) {
+  .section-slno-row {
+    display: block;
+  }
+
+  .section-slno-row mat-form-field {
+    width: 100%;
+  }
+}
+
 mat-spinner {
   margin: auto;
 }

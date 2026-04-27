@@ -54,8 +54,9 @@
             <mat-select class="approval-type1" #selectApproval [(ngModel)]="selectedApprovalType" multiple
               (openedChange)="openedChange($event)">
               <mat-option (click)="selectedApprovalType = undefined; selectApproval.open();">Clear All</mat-option>
-              <mat-option value="Claim against advance">Claim against advance</mat-option>
-              <mat-option value="Advance or Imprest">Advance or Imprest</mat-option>
+              <mat-option value="Claim against advance/PO">Claim against advance/PO</mat-option>
+              <mat-option value="Advance">Advance</mat-option>
+              <mat-option value="Imprest">Imprest</mat-option>
               <mat-option value="Claim">Claim</mat-option>
               <mat-option value="In Principle or Admin Approval">In Principle or Admin Approval</mat-option>
               <mat-option value="Award Approval">Award Approval</mat-option>

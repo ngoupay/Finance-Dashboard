@@ -32,6 +32,8 @@ const approvalSchema = mongoose.Schema({
   bank_name: { type: String, required: false },
   payee_name: { type: String, required: false },
   ifsc_code: { type: String, required: false },
+  section: { type: String, required: false },
+  sl_no: { type: String, required: false },
   advance_details: { type: String, required: false },
   awardquantity: { type: Number, required: false, default: 0 },
   awardvalue: { type: Number, required: false, default: 0 },
@@ -78,6 +80,8 @@ const approvalSchema = mongoose.Schema({
     bank_name: { type: String, required: false },
     payee_name: { type: String, required: false },
     ifsc_code: { type: String, required: false },
+    section: { type: String, required: false },
+    sl_no: { type: String, required: false },
     bill_vendornumbers: { type: Array, required: false }
   }
   ]

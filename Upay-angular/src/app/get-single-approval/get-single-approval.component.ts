@@ -16,6 +16,7 @@ import { ActionDialogComponent } from '../dashboard/action-dialog/action-dialog.
 })
 export class GetSingleApprovalComponent implements OnInit {
   private approverSubscription: Subscription;
+  private salarySubscription: Subscription;
   approverList;
   token = null;
   approvalId;
@@ -26,6 +27,7 @@ export class GetSingleApprovalComponent implements OnInit {
   timeline;
   err = false;
   private approvalSubscription: Subscription;
+  salaryList = [];
 
   constructor(
     private approvalService: ApprovalFormService,
@@ -50,6 +52,7 @@ export class GetSingleApprovalComponent implements OnInit {
         if ((res as any).res) {
           this.approval = (res as any).res;
           this.setTimelineAndApprovalCreatedDate(this.approval);
+          this.loadSalaryFilesIfNeeded();
         }
         return;
       }
@@ -59,6 +62,7 @@ export class GetSingleApprovalComponent implements OnInit {
         if ((res as any).res) {
           this.approval = (res as any).res;
           this.setTimelineAndApprovalCreatedDate(this.approval);
+          this.loadSalaryFilesIfNeeded();
         }
         return;
       }
@@ -66,6 +70,7 @@ export class GetSingleApprovalComponent implements OnInit {
       if ((res as any)._id) {
         this.approval = res;
         this.setTimelineAndApprovalCreatedDate(this.approval);
+        this.loadSalaryFilesIfNeeded();
       }
     });
 
@@ -73,6 +78,18 @@ export class GetSingleApprovalComponent implements OnInit {
       this.approverList = res;
     });
 
+  }
+
+  loadSalaryFilesIfNeeded() {
+    if (this.approval && this.approval.approval_type === 'Salary') {
+      this.salaryList = [];
+      this.approvalService.getSalaryApproval(this.approval.approvalId);
+      this.salarySubscription = this.approvalService.getSalaryListener().subscribe((res: any) => {
+        if (Array.isArray(res)) {
+          this.salaryList = res;
+        }
+      });
+    }
   }
 
   openSnackBar(message, type) {

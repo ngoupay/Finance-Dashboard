@@ -1,5 +1,5 @@
-<h4 style="padding-bottom: 19px;
-padding-top: 7px;">Provide Bill(s) detail</h4>
+<!-- Bill Details Section -->
+<h4 style="padding-bottom: 10px; padding-top: 7px;">Bill Details</h4>
 <div class="floating">
     <mat-form-field class="sizee">
         <input matInput type="text" placeholder="Bill Number" name="billNumber" [(ngModel)]="bill.number" value="number"
@@ -17,27 +17,41 @@ padding-top: 7px;">Provide Bill(s) detail</h4>
         <mat-error *ngIf="vendorInput.invalid"> Please enter vendor</mat-error>
     </mat-form-field>
     <mat-form-field class="sizee">
-        <input matInput type="text" placeholder="item Discription" name="body" [(ngModel)]="bill.itemDesc"
+        <input matInput type="text" placeholder="Item Description" name="body" [(ngModel)]="bill.itemDesc"
             value="itemDesc" #DiscriptionInput="ngModel" required minlength="20">
-        <mat-error *ngIf="DiscriptionInput.invalid"> Please provide Discription (min character 20)</mat-error>
+        <mat-error *ngIf="DiscriptionInput.invalid"> Please provide description (min character 20)</mat-error>
     </mat-form-field>
-    <div>
-        <mat-form-field class="sizee">
-            <input matInput type="text" placeholder="Asset Details" name="assetdetails" [(ngModel)]="bill.assetDetails"
-                value="assetDetails" #assetDetailsInput="ngModel" required>
-            <mat-error *ngIf="billNumberInput.invalid"> Please enter Asset Details</mat-error>
-        </mat-form-field>
-        <mat-form-field class="sizee">
-            <input matInput type="number" placeholder="Asset Value" name="assetvalue" [(ngModel)]="bill.assetValue"
-                value="assetValue" #assetValueInput="ngModel" required>
-            <mat-error *ngIf="billNumberInput.invalid"> Please enter Asset Value</mat-error>
-        </mat-form-field>
-        <mat-form-field class="sizee">
-            <input matInput type="text" placeholder="Asset Codes" name=" assetcodes" [(ngModel)]="bill.assetCodes"
-                value=" assetCodes" #assetCodesInput="ngModel" required>
-            <mat-error *ngIf="billNumberInput.invalid"> Please enter Asset Codes</mat-error>
-        </mat-form-field>
-    </div>
+    <mat-form-field class="sizee sizee-wide">
+        <input matInput type="text" placeholder="Project" [name]="'project' + b" [(ngModel)]="bill.project"
+            [matAutocomplete]="projectAuto" (ngModelChange)="onProjectInputChange($event)" #projectInput="ngModel" required>
+        <mat-autocomplete #projectAuto="matAutocomplete" (optionSelected)="onProjectSelected($event.option.value)">
+            <mat-option *ngFor="let project of filteredProjects" [value]="project">
+                {{project}}
+            </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="projectInput.invalid"> Please select project</mat-error>
+    </mat-form-field>
+    <mat-form-field class="sizee sizee-wide">
+        <input matInput type="text" placeholder="Budget Head" [name]="'budgetHead' + b" [(ngModel)]="bill.budgetHead"
+            [matAutocomplete]="budgetHeadAuto" (ngModelChange)="onBudgetHeadInputChange($event)" #budgetHeadInput="ngModel" required>
+        <mat-autocomplete #budgetHeadAuto="matAutocomplete" (optionSelected)="onBudgetHeadSelected($event.option.value)">
+            <mat-option *ngFor="let budgetHead of filteredBudgetHeads" [value]="budgetHead.display">
+                {{budgetHead.display}}
+            </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="budgetHeadInput.invalid"> Please select budget head</mat-error>
+    </mat-form-field>
+    <mat-form-field class="sizee sizee-wide">
+        <input matInput type="text" placeholder="Budget Sub-Head" [name]="'budgetSubHead' + b" [(ngModel)]="bill.budgetSubHead"
+            [matAutocomplete]="budgetSubHeadAuto" (ngModelChange)="onBudgetSubHeadInputChange($event)"
+            [disabled]="!bill?.budgetHead || filteredBudgetSubHeads.length === 0" #budgetSubHeadInput="ngModel">
+        <mat-autocomplete #budgetSubHeadAuto="matAutocomplete" (optionSelected)="onBudgetSubHeadSelected($event.option.value)">
+            <mat-option *ngFor="let budgetSubHead of filteredBudgetSubHeads" [value]="budgetSubHead">
+                {{budgetSubHead}}
+            </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="budgetSubHeadInput.invalid"> Please select budget sub-head</mat-error>
+    </mat-form-field>
     <div class="file-input mt-10 mb-10">
         <input type="file" accept=".doc,.docx,.txt,.pdf,.jpg,.jpeg,.png" name="file" #billInput observeFiles
             (change)="onbillImagePicked($event,b)" />
@@ -48,7 +62,6 @@ padding-top: 7px;">Provide Bill(s) detail</h4>
         <p class="filename" style="padding:10px; margin-top:10px; max-width:250px;">Attachment</p>
         <p class="filename" style="padding:10px; margin-top:10px; max-width:250px;" *ngIf="bill.file">{{bill.file.name}}
         </p>
-
         <button style="font-weight: 500;
         color: #1d319f;
         cursor: pointer;
@@ -61,6 +74,39 @@ padding-top: 7px;">Provide Bill(s) detail</h4>
         left: 20px;
         " (click)="$event.preventDefault(); removebillItem(b)"> - Remove bill </button>
     </div>
+</div>
+
+<!-- Asset Details Section -->
+<h4 style="padding-bottom: 10px; padding-top: 18px;">Asset Details</h4>
+<div class="floating">
+    <mat-form-field class="sizee">
+        <mat-select placeholder="Asset Type" name="assetType" [(ngModel)]="bill.assetType" #assetTypeInput="ngModel" required>
+            <mat-option value="Computer">Computer</mat-option>
+            <mat-option value="Laptop">Laptop</mat-option>
+            <mat-option value="Tablet">Tablet</mat-option>
+            <mat-option value="Printer">Printer</mat-option>
+            <mat-option value="Vehicle">Vehicle</mat-option>
+            <mat-option value="Smart TV">Smart TV</mat-option>
+            <mat-option value="Projector">Projector</mat-option>
+            <mat-option value="Others">Others</mat-option>
+        </mat-select>
+        <mat-error *ngIf="assetTypeInput.invalid"> Please select asset type</mat-error>
+    </mat-form-field>
+    <mat-form-field class="sizee">
+        <input matInput type="text" placeholder="Asset Details" name="assetdetails" [(ngModel)]="bill.assetDetails"
+            value="assetDetails" #assetDetailsInput="ngModel" required>
+        <mat-error *ngIf="assetDetailsInput.invalid"> Please enter Asset Details</mat-error>
+    </mat-form-field>
+    <mat-form-field class="sizee">
+        <input matInput type="number" placeholder="Asset Value" name="assetvalue" [(ngModel)]="bill.assetValue"
+            value="assetValue" #assetValueInput="ngModel" required>
+        <mat-error *ngIf="assetValueInput.invalid"> Please enter Asset Value</mat-error>
+    </mat-form-field>
+    <mat-form-field class="sizee">
+        <input matInput type="text" placeholder="Asset Codes" name="assetcodes" [(ngModel)]="bill.assetCodes"
+            value="assetCodes" #assetCodesInput="ngModel" required>
+        <mat-error *ngIf="assetCodesInput.invalid"> Please enter Asset Codes</mat-error>
+    </mat-form-field>
 </div>
 <div>
     <hr>

@@ -36,6 +36,10 @@ position:relative;
 .filebtn{
     top:10px;
 }
+.verify-btn {
+  align-self: flex-start;
+  margin-bottom: 10px;
+}
 .sizee1{
     width:80px;
     height:30px;
@@ -70,6 +74,15 @@ position:relative;
   }
   .file-input + button {
     margin-top: 15px;
+  }
+  .csv-actions {
+    display: block;
+    clear: both;
+    margin-bottom: 10px;
+    margin-top: 18px;
+  }
+  .csv-actions .filename {
+    margin-left: 0;
   }
   input[type="file"] {
     display: none;

@@ -16,6 +16,7 @@ import { ActivatedRoute } from "@angular/router";
 })
 export class ApprovalFormComponent implements OnInit, OnDestroy {
   approvalInput: number;
+  requisitionPlaceholder = 'Requisition amount';
   payeePlaceholder: string;
   accountnoPlaceholder: string;
   banknamePlaceholder: string;
@@ -118,6 +119,7 @@ export class ApprovalFormComponent implements OnInit, OnDestroy {
   isLoading = false;
   approvalForm;
   approvalInputValue = 0;
+  private defaultRequisitionPlaceholder = 'Requisition amount';
   approvalPlaceholder = 'Approval/Utilization Details (Item, Amount, Vendor and Bill Details)';
   private otpVerificationSubscription: Subscription;
   private formSubmitSubscription: Subscription;
@@ -126,6 +128,103 @@ export class ApprovalFormComponent implements OnInit, OnDestroy {
   approvals = [];
   approvalFile;
   invalidAdvanceID = false;
+  sectionSlNoMappings = [
+    {
+      code: '1A',
+      title: 'Approving Authority for non-financial proposal',
+      label: 'Section 1A - Approving Authority for non-financial proposal',
+      slNos: [
+        '1a. New zone expansion approval',
+        '1b. New Center expansion approval',
+        '2. EBM & Zonal Team selection',
+        '3. Opening and Closing of Bank account'
+      ]
+    },
+    {
+      code: '1B',
+      title: 'Controlling Authority for non-financial proposal',
+      label: 'Section 1B - Controlling Authority for non-financial proposal',
+      slNos: [
+        '1. CSR Proposal',
+        '2. 80 G Donation Receipt',
+        '3. Digital Signature',
+        '4. External Training',
+        '5. Press release and external representation'
+      ]
+    },
+    {
+      code: '2A',
+      title: 'Purchases of materials/items/services by direct payments to vendors',
+      label: 'Section 2A - Purchases of materials/items/services by direct payments to vendors',
+      slNos: [
+        '1. In-principle/Administrative approval for cost estimate & specification vetting',
+        '2. Award approvals of POs and approval for mode of tendering',
+        '3. Approval for deviation in PO value and amendment in PO',
+        '4. Approval for cancellation/closure of PO',
+        '5. Approval for extension in time duration of PO',
+        '6. Approval for advance/payments to vendors as provided in PO'
+      ]
+    },
+    {
+      code: '2B',
+      title: 'Proposal for Advances, claims to individuals for procurement of material and services',
+      label: 'Section 2B - Proposal for Advances, claims to individuals for procurement of material and services',
+      slNos: [
+        '1. Approval for advance/imprest and claims against expenditures to individuals',
+        '2. Approval for sanction of advance to paid staff',
+        '3. Approval for waiving off advance or relaxation in repayment duration',
+        '4. Approval for advance/reimbursement for travel expenditure',
+        '5. Honorarium'
+      ]
+    },
+    {
+      code: '2C',
+      title: 'Approval of funds for other than routine operations and functions',
+      label: 'Section 2C - Approval of funds for other than routine operations and functions',
+      slNos: [
+        '1. Approval of funds (contingency/disaster/emergency)',
+        '2. Award of scholarships and sponsorships',
+        '3. Expenditure for disaster relief and emergency/contingency funds'
+      ]
+    },
+    {
+      code: '3',
+      title: 'Powers delegated w.r.t. write off, sale of items and others',
+      label: 'Section 3 - Powers delegated w.r.t. write off, sale of items and others',
+      slNos: [
+        '1. Approval for write-off of items (theft/loss/obsolete/unserviceable items)',
+        '2. Approval for sale of scrap/old items',
+        '3. Approval for sale of new items'
+      ]
+    },
+    {
+      code: '4',
+      title: 'Power to quote rates on behalf of UPAY',
+      label: 'Section 4 - Power to quote rates on behalf of UPAY',
+      slNos: [
+        '1. Approval of rates for supply/services and acceptance of purchase orders'
+      ]
+    },
+    {
+      code: '5',
+      title: 'Appointments',
+      label: 'Section 5 - Appointments',
+      slNos: [
+        '1. Appointment of staff/trainee with stipend/remuneration'
+      ]
+    },
+    {
+      code: '6',
+      title: 'General Instructions',
+      label: 'Section 6 - General Instructions',
+      slNos: []
+    }
+  ];
+  filteredSections = this.sectionSlNoMappings;
+  filteredSlNos: string[] = [];
+  selectedSectionLabel = '';
+  selectedSectionCode = '';
+  selectedSlNo = '';
 
 
   /* no change */
@@ -153,7 +252,8 @@ export class ApprovalFormComponent implements OnInit, OnDestroy {
     });
 
     this.approvals.push({ name: 'In Principle or Admin Approval', value: 0 });
-    this.approvals.push({ name: 'Advance or Imprest', value: 1 });
+    this.approvals.push({ name: 'Advance', value: 1 });
+    this.approvals.push({ name: 'Imprest', value: 6 });
     this.approvals.push({ name: 'Claim against advance/PO', value: 2 });
     this.approvals.push({ name: 'Claim', value: 3 });
     this.approvals.push({ name: 'Award Approval', value: 4 });
@@ -176,7 +276,7 @@ export class ApprovalFormComponent implements OnInit, OnDestroy {
             this.getUntilizedamt(null, this.updateApproval.approvalId);
           }
 
-          if (this.updateApproval.approval_type === 'Advance or Imprest' || this.updateApproval.approval_type === 'Claim against advance/PO' || this.updateApproval.approval_type === 'Claim') {
+          if (this.updateApproval.approval_type === 'Advance or Imprest' || this.updateApproval.approval_type === 'Advance' || this.updateApproval.approval_type === 'Imprest' || this.updateApproval.approval_type === 'Claim against advance/PO' || this.updateApproval.approval_type === 'Claim') {
             this.getBillData();
             this.approvalService
               .getBillListener()
@@ -189,6 +289,9 @@ export class ApprovalFormComponent implements OnInit, OnDestroy {
                       amount: bill.billamount || "",
                       vendor: bill.vendorname || "",
                       itemDesc: bill.description || "",
+                      project: bill.project || "",
+                      budgetHead: bill.budgetHead || "",
+                      budgetSubHead: bill.budgetSubHead || "",
                       assetDetails: bill.assetdetails || "",
                       assetValue: bill.assetvalue || "",
                       assetCodes: bill.assetcodes || "",
@@ -286,6 +389,16 @@ export class ApprovalFormComponent implements OnInit, OnDestroy {
       });
       return
     }
+
+    if (this.isBillBasedApprovalType(approvalForm.value.approval) && !this.requisitionAmountMatchesBillTotal(approvalForm.value.amount)) {
+      this.snackBar.open("Requisite amount should match the sum of all the bill amounts", undefined, {
+        duration: 5000,
+        verticalPosition: 'top',
+        panelClass: 'failure'
+      });
+      return;
+    }
+
     this.isLoading = true;
     this.approvalForm = approvalForm;
     approvalForm.value.bills = this.bills;
@@ -359,10 +472,57 @@ export class ApprovalFormComponent implements OnInit, OnDestroy {
       this.ifscPlaceholder = 'Bank IFSC';
       this.approvalPlaceholder = 'Approval/Utilization Details';
     }
+    if (value == 2 || value == 3) {
+      this.requisitionPlaceholder = 'Requisition amount: Sum of all the utilized amount';
+    } else {
+      this.requisitionPlaceholder = this.defaultRequisitionPlaceholder;
+    }
     if (value == 0) {
       this.approvalPlaceholder = 'Justify your approval request';
     }
+    this.resetSectionAndSlNo();
     this.approvalInputValue = value
+  }
+
+  resetSectionAndSlNo() {
+    this.selectedSectionLabel = '';
+    this.selectedSectionCode = '';
+    this.selectedSlNo = '';
+    this.filteredSections = this.sectionSlNoMappings;
+    this.filteredSlNos = [];
+  }
+
+  onSectionInputChange(searchTerm: string) {
+    const term = (searchTerm || '').trim().toLowerCase();
+    this.filteredSections = this.sectionSlNoMappings.filter(section =>
+      section.label.toLowerCase().includes(term)
+    );
+
+    const matchedSection = this.sectionSlNoMappings.find(section => section.label === searchTerm);
+    if (!matchedSection) {
+      this.selectedSectionCode = '';
+      this.selectedSlNo = '';
+      this.filteredSlNos = [];
+    }
+  }
+
+  onSectionSelected(sectionLabel: string) {
+    this.selectedSectionLabel = sectionLabel;
+    const matchedSection = this.sectionSlNoMappings.find(section => section.label === sectionLabel);
+    this.selectedSectionCode = matchedSection ? matchedSection.code : '';
+    this.selectedSlNo = '';
+    this.filterSlNos('');
+  }
+
+  filterSlNos(searchTerm: string) {
+    const selectedSection = this.sectionSlNoMappings.find(section => section.code === this.selectedSectionCode);
+    if (!selectedSection) {
+      this.filteredSlNos = [];
+      return;
+    }
+
+    const term = (searchTerm || '').trim().toLowerCase();
+    this.filteredSlNos = selectedSection.slNos.filter(slNo => slNo.toLowerCase().includes(term));
   }
 
   sendOTP(phone) {
@@ -450,6 +610,46 @@ export class ApprovalFormComponent implements OnInit, OnDestroy {
     return true
   }
 
+  private isBillBasedApprovalType(approvalType: number): boolean {
+    return [1, 2, 3, 6].indexOf(approvalType) !== -1;
+  }
+
+  private requisitionAmountMatchesBillTotal(requisitionAmount: string | number): boolean {
+    const parsedRequisitionAmount = Number(requisitionAmount);
+    if (isNaN(parsedRequisitionAmount)) {
+      return false;
+    }
+
+    const totalBillAmount = (this.bills || []).reduce((total, bill) => {
+      const billAmount = Number(bill && bill.amount);
+      return total + (isNaN(billAmount) ? 0 : billAmount);
+    }, 0);
+
+    return Math.abs(parsedRequisitionAmount - totalBillAmount) < 0.01;
+  }
+
+  calculatePayableAmount(requisiteAmount: string | number, unutilizedAmount: string | number): number | '' {
+    const requisiteRaw = requisiteAmount !== null && requisiteAmount !== undefined ? `${requisiteAmount}`.trim() : '';
+    const unutilizedRaw = unutilizedAmount !== null && unutilizedAmount !== undefined ? `${unutilizedAmount}`.trim() : '';
+
+    if (!requisiteRaw || !unutilizedRaw) {
+      return '';
+    }
+
+    const parsedRequisite = Number(requisiteRaw);
+    const parsedUnutilized = Number(unutilizedRaw);
+
+    if (isNaN(parsedRequisite) || isNaN(parsedUnutilized)) {
+      return '';
+    }
+
+    if (parsedRequisite > parsedUnutilized) {
+      return parsedRequisite - parsedUnutilized;
+    }
+
+    return 0;
+  }
+
   getUntilizedamt(event: any, id: any) {
     var advanceId = event && event.target ? event.target.value : id;
     if (advanceId !== undefined) {
@@ -489,6 +689,9 @@ export class ApprovalFormComponent implements OnInit, OnDestroy {
   }
 
   filterApprovals(value) {
+    if (value === 'Advance or Imprest') {
+      value = 'Advance';
+    }
     let approvalVal = this.approvals.find(item => item.name === value);
     if (approvalVal) {
       this.approvalChanged(approvalVal.value);
