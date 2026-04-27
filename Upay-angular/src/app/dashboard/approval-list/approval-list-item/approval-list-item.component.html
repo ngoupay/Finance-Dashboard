@@ -54,8 +54,12 @@
       href="../bill-dashboard?id={{approval.claimId }}">Bills dashboard</a>
     <a *ngIf="!approval.filePath && approval.approval_type =='Claim'" target="_blank"
       href="../bill-dashboard?id={{approval.approvalId }}">Bills dashboard</a>
-    <a *ngIf="!approval.filePath && approval.approval_type =='Advance or Imprest'" target="_blank"
+    <a *ngIf="!approval.filePath && (approval.approval_type =='Advance' || approval.approval_type =='Imprest' || approval.approval_type =='Advance or Imprest')" target="_blank"
       href="../bill-dashboard?id={{approval.approvalId }}">Bills dashboard</a>
+    <ng-container *ngIf="approval.approval_type =='Salary'">
+      <a *ngFor="let salaryFile of salaryCsvFiles" [href]="salaryFile.csvFilePath || salaryFile.filePath" target="_blank" [attr.download]="salaryFile.csvFileName || salaryFile.fileName || 'salary.csv'">Download CSV</a>
+      <span *ngIf="!salaryCsvFiles.length">-</span>
+    </ng-container>
   </div>
   <div (click)="openTimeline()"
     [ngClass]="{'approved': approval.status == 'approved' || approval.status == 'transferred', 'rejected': approval.status == 'rejected'}"
@@ -76,6 +80,8 @@
   <pre>{{approval.payment_details}}</pre><br>
   <p *ngIf="approval.advance_details"><strong>Advance Details: </strong>
   <pre>{{approval.advance_details}}</pre>
+  <div *ngIf="approval?.section"><label>Section: </label> <span>{{approval.section}}</span></div>
+  <div *ngIf="approval?.sl_no"><label>Sl. No.: </label> <span>{{approval.sl_no}}</span></div>
   <div><label>A/C: </label> <span>{{approval?.account_no}}</span></div>
   <div><label>Bank Name </label><span>{{approval?.bank_name}}</span></div>
   <div><label>Payee Name: </label> <span>{{approval?.payee_name}}</span></div>

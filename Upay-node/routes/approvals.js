@@ -2,6 +2,7 @@ const express = require('express');
 const ApprovalController = require('../controllers/approval');
 const checkAuth = require('../middleware/check-auth');
 const extractFile = require('../middleware/file');
+const extractSalaryFiles = require('../middleware/file-salary');
 
 const router = express.Router();
 
@@ -9,7 +10,7 @@ router.post('', extractFile, ApprovalController.createApproval);
 router.put('', extractFile, ApprovalController.updateApproval);
 router.post('/create/:id', extractFile, ApprovalController.createApproval2);
 router.put('/update/:id', extractFile, ApprovalController.updateApproval2);
-router.post('/salary', extractFile, ApprovalController.createSalary);
+router.post('/salary', extractSalaryFiles, ApprovalController.createSalary);
 router.post('/bill', extractFile, ApprovalController.createBill);
 router.put('/bill/:id', extractFile, ApprovalController.updateBill);
 router.post('/awardtable', extractFile, ApprovalController.createAward);
@@ -34,6 +35,6 @@ router.get('/getAwardApproval/:id', ApprovalController.getAwardApproval);
 router.get('/getBillApproval/:id', ApprovalController.getBillApproval);
 router.get('/getUnutilizedamt/:id', ApprovalController.getUnutilizedamt);
 router.get('/salary/:id', ApprovalController.getSalaryFromApprovalId);
-router.put('/salary/:id', extractFile, ApprovalController.updateSalary);
+router.put('/salary/:id', extractSalaryFiles, ApprovalController.updateSalary);
 
 module.exports = router;

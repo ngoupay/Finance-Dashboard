@@ -1,6 +1,6 @@
 import { Subscription } from 'rxjs';
 import { ApprovalFormService } from './../../../service/approval-form.service';
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnChanges, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
 import { MatDialog, MatSnackBar } from '@angular/material';
 import { ActionDialogComponent } from './../../action-dialog/action-dialog.component';
 import { AuthService } from 'src/app/service/auth.service';
@@ -17,6 +17,7 @@ export class ApprovalListItemComponent implements OnInit {
   awardPodata;
   awardCreatedDate;
   approvalForm;
+  salaryCsvFiles = [];
 
   approvals = [];
 
@@ -44,9 +45,29 @@ export class ApprovalListItemComponent implements OnInit {
     } else {
       this.zone = 'Central';
     }
-    // console.log("Audit :" + this.approval.isAudit);
+    this.loadSalaryCsvFiles();
 
 
+
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.approval && changes.approval.currentValue) {
+      this.loadSalaryCsvFiles();
+    }
+  }
+
+  loadSalaryCsvFiles() {
+    if (!this.approval || this.approval.approval_type !== 'Salary' || !this.approval.approvalId) {
+      this.salaryCsvFiles = [];
+      return;
+    }
+
+    this.approvalService.getSalaryApprovalData(this.approval.approvalId).subscribe((res: any) => {
+      this.salaryCsvFiles = Array.isArray(res) ? res.filter(file => file && (file.csvFilePath || file.filePath)) : [];
+    }, () => {
+      this.salaryCsvFiles = [];
+    });
   }
 
   openTimeline() {

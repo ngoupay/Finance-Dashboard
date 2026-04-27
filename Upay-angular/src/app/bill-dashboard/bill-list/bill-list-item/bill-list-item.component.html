@@ -17,8 +17,34 @@
   <div class="bill-contact">
     {{bill.date || '-'}}
   </div>
+  <div class="bill-contact bill-description">
+    <div class="bill-description__text" [class.bill-description__text--expanded]="isDescriptionExpanded">
+      {{getDescription()}}
+    </div>
+    <button class="bill-description__toggle" *ngIf="canToggleDescription()" type="button" (click)="toggleDescription()">
+      {{isDescriptionExpanded ? 'Less' : 'More'}}
+    </button>
+  </div>
   <div class="bill-contact">
-    {{bill.description || '-'}}
+    {{bill.project || ''}}
+  </div>
+  <div class="bill-contact">
+    {{bill.budgetHead || ''}}
+  </div>
+  <div class="bill-contact">
+    {{bill.budgetSubHead || ''}}
+  </div>
+  <div class="bill-contact">
+    {{bill.assettype || '-'}}
+  </div>
+  <div class="bill-contact">
+    {{bill.assetdetails || '-'}}
+  </div>
+  <div class="bill-contact">
+    {{bill.assetvalue || '-'}}
+  </div>
+  <div class="bill-contact">
+    {{bill.assetcodes || '-'}}
   </div>
   <div class="bill-file">
       <a *ngIf="bill.filePath" href="{{bill.filePath}}" target="_blank">File</a>

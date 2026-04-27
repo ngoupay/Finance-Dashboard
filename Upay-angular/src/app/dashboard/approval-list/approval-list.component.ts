@@ -16,10 +16,8 @@ import { ApprovalFormService } from './../../service/approval-form.service';
 
 
 export class ApprovalListComponent implements OnInit {
-  public month: number = new Date().getMonth();
-  public fullYear: number = new Date().getFullYear();
-  public start: Date = new Date(this.fullYear, this.month - 1, 7);
-  public end: Date = new Date(this.fullYear, this.month, 25);
+  public start: Date = new Date(2026, 0, 1); // Jan 1, 2026
+  public end: Date = new Date(); // today
 
   constructor() {
   }

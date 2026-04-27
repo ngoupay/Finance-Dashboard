@@ -199,7 +199,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.allApprovalSubscription = this.approvalFormService.getAllApprovalListener().subscribe((res) => {
       if (res) {
         this.allApprovalData = res;
-        const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.allApprovalData);
+        
+        const formattedData = (this.allApprovalData as any[]).map(item => {
+          let flattened = { ...item };
+          if (item.bills && item.bills.length > 0) {
+            flattened.bill_numbers = item.bills.map(b => b.billnumber).join('; ');
+            flattened.bill_amounts = item.bills.map(b => b.billamount).join('; ');
+            flattened.vendors = item.bills.map(b => b.vendorname).join('; ');
+            flattened.asset_types = item.bills.map(b => b.assettype).join('; ');
+            flattened.asset_details = item.bills.map(b => b.assetdetails).join('; ');
+            flattened.asset_values = item.bills.map(b => b.assetvalue).join('; ');
+            flattened.asset_codes = item.bills.map(b => b.assetcodes).join('; ');
+          }
+          delete flattened.bills;
+          return flattened;
+        });
+
+        const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(formattedData);
         const workbook: XLSX.WorkBook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] };
         const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
         this.saveAsExcelFile(excelBuffer, 'UPAY');

@@ -36,9 +36,15 @@ export class ApprovalFormService {
     postData.append('billamount', data.amount);
     postData.append('vendorname', data.vendor);
     postData.append('description', data.itemDesc);
+    postData.append('project', data.project || '');
+    postData.append('budgetHead', data.budgetHead || '');
+    postData.append('budgetSubHead', data.budgetSubHead || '');
     postData.append('assetdetails', data.assetDetails);
     postData.append('assetvalue', data.assetValue);
     postData.append('assetcodes', data.assetCodes);
+    if (data.assetType) {
+      postData.append('assettype', data.assetType);
+    }
     if (file) {
       postData.append('file', file, data.file.name);
     }
@@ -61,9 +67,15 @@ export class ApprovalFormService {
     postData.append('billamount', data.amount);
     postData.append('vendorname', data.vendor);
     postData.append('description', data.itemDesc);
+    postData.append('project', data.project || '');
+    postData.append('budgetHead', data.budgetHead || '');
+    postData.append('budgetSubHead', data.budgetSubHead || '');
     postData.append('assetdetails', data.assetDetails);
     postData.append('assetvalue', data.assetValue);
     postData.append('assetcodes', data.assetCodes);
+    if (data.assetType) {
+      postData.append('assettype', data.assetType);
+    }
     if (data.file instanceof File) {
       postData.append('file', data.file, data.file.name);
     }
@@ -118,6 +130,12 @@ export class ApprovalFormService {
     if (data.file instanceof File) {
       postData.append('file', data.file, data.file.name);
     }
+    if (data.csvFile instanceof File) {
+      postData.append('csvFile', data.csvFile, data.csvFile.name);
+      if (!(data.file instanceof File)) {
+        postData.append('file', data.csvFile, data.csvFile.name);
+      }
+    }
     this.http.put(this.url + `/salary/${id}`, postData).subscribe((res: any) => {
       //console.log(res.message)
     },
@@ -137,6 +155,12 @@ export class ApprovalFormService {
     postData.append('description', data.itemDesc);
     if (file) {
       postData.append('file', file, data.file.name);
+    }
+    if (data.csvFile instanceof File) {
+      postData.append('csvFile', data.csvFile, data.csvFile.name);
+      if (!file) {
+        postData.append('file', data.csvFile, data.csvFile.name);
+      }
     }
     this.http.post(this.url + `/salary`, postData).subscribe((res: any) => {
       //console.log(res.message)
@@ -190,8 +214,9 @@ export class ApprovalFormService {
     postData1.append('amount', data.amount);
     postData1.append('subject', data.subject);
     postData1.append('body', data.body);
-    if (approvalTypes[data.approval]) {
-      postData1.append('type', approvalTypes[data.approval].name);
+    const selectedApprovalType = approvalTypes.find(type => type.value === data.approval);
+    if (selectedApprovalType) {
+      postData1.append('type', selectedApprovalType.name);
     }
     if (data.advanceId) {
       postData1.append('advanceid', data.advanceId);
@@ -219,6 +244,12 @@ export class ApprovalFormService {
     }
     if (data.awardValue) {
       postData1.append('awardValue', data.awardValue);
+    }
+    if (data.section) {
+      postData1.append('section', data.section);
+    }
+    if (data.slNo) {
+      postData1.append('slNo', data.slNo);
     }
 
     if (data.approvalId) {
@@ -252,7 +283,7 @@ export class ApprovalFormService {
           this.formSubmitSubject.next(res);
         }
 
-        if (data.approval == 1 || data.approval == 3) {
+        if (data.approval == 1 || data.approval == 6 || data.approval == 3) {
           data.bills.forEach(bill => {
             console.log("inside bills");
             if (bill._id) {
@@ -304,7 +335,7 @@ export class ApprovalFormService {
           });
           this.formSubmitSubject.next(res);
         }
-        if (data.approval == 1 || data.approval == 3) {
+        if (data.approval == 1 || data.approval == 6 || data.approval == 3) {
           data.bills.forEach(bill => {
             console.log("inside bills");
             this.submitBills(approvalId, null, bill, bill.file);
@@ -344,8 +375,9 @@ export class ApprovalFormService {
     postData.append('amount', data.amount);
     postData.append('subject', data.subject);
     postData.append('body', data.body);
-    if (approvalTypes[data.approval]) {
-      postData.append('type', approvalTypes[data.approval].name);
+    const selectedApprovalType = approvalTypes.find(type => type.value === data.approval);
+    if (selectedApprovalType) {
+      postData.append('type', selectedApprovalType.name);
     }
 
     if (data.payeeName) {
@@ -359,6 +391,12 @@ export class ApprovalFormService {
     }
     if (data.bankIfsc) {
       postData.append('bankIfsc', data.bankIfsc);
+    }
+    if (data.section) {
+      postData.append('section', data.section);
+    }
+    if (data.slNo) {
+      postData.append('slNo', data.slNo);
     }
 
     if (file instanceof File) {
@@ -445,6 +483,10 @@ export class ApprovalFormService {
     },
       (err) => { this.salarySubject.next(err.error); }
     );
+  }
+
+  getSalaryApprovalData(id) {
+    return this.http.get(this.url + `/salary/${id}`);
   }
 
   getUnutilizedamt(id) {
